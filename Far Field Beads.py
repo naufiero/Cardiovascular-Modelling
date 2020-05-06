@@ -25,26 +25,32 @@ beads_final = fmtrack.FMBeads()
 beads_final.get_bead_centers(filenames_final_beads, 1, X_DIM, Y_DIM, Z_DIM)
 
 
-points_init = mesh_init.points
-points_final = mesh_final.points 
+points = mesh_init.points
+p1,p2,p3 = (points[:,0],points[:,1],points[:,2]) 
 
-# Find shortest distance  between each initial bead and the cell boundary
+beads = beads_init.points
+b1,b2,b3 = (beads[:,0],beads[:,1],beads[:,2])
+# Find shortest distance  between each initial bead and all the cell mesh vertices
 kk = 0
-X,Y,Z = beads_init.get_xyz()
-c1,c2,c3 = points_init.get_xyz()
-distances = np.zeros(len(X))
-temp = np.zeros(len(c1))
-for bead in beads_init:
-    for point in points_init: 
-        temp[point] = math.sqrt((X[bead]-c1[point])**2 + (Y[bead]-c2[point])**2 + (Z[bead]-c3[point])**2)
+new_beads = np.zeros((len(beads), 3))
+temp = np.zeros(len(points))
+for bead in range(0,len(beads)):
+    jj = 0
+    for point in range(0,len(points)): 
+        temp[jj] = math.sqrt((b1[bead]-p1[point])**2 + (b2[bead]-p2[point])**2 + (b3[bead]-p3[point])**2)
+        jj = jj + 1
     
     min_dist = np.amin(temp)
+    print(min_dist)
     if min_dist > 50:
-        distances[kk] = [X[bead], Y[bead], Z[bead]]
+        new_beads[kk] = [b1[bead],b2[bead],b3[bead]]
         kk = kk + 1
 
+
 # Trim off the end zeros that were never filled
-np.trim_zeros(distances)
-    
-# the d array should be all the far field beads
+new_beads = new_beads[:kk, :]
+b1,b2,b3 = (new_beads[:,0],new_beads[:,1],new_beads[:,2])   
+Far_beads = fmtrack.FMBeads()
+Far_beads.load_from_positions(b1, b2, b3)
+Far_beads.save_as_txt('./06092019 Info/Far Field Beads')
 
